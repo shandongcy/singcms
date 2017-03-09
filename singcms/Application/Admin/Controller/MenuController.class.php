@@ -92,21 +92,47 @@ class MenuController extends CommonController {
     }
 
     public function setStatus() {
-        try{
-            if ($_POST) {
-                $id = $_POST['id'];
-                $status = $_POST['status'];
-                //执行数据更新操作
-                $res = D('Menu')->updateStatusById($id,$status);
-                if($res){
-                    return show(1,"数据删除成功");
-                }else{
-                    return show(0,"数据删除失败");
-                }  
+        if ($_POST) {
+            $id = $_POST['id'];
+            $status = $_POST['status'];
+            //执行数据更新操作
+            try {
+                $res = D('Menu')->updateStatusById($id, $status);
+                if ($res) {
+                    return show(1, "数据删除成功");
+                } else {
+                    return show(0, "数据删除失败");
+                }
+            } catch (Exception $e) {
+                return show(0, $e->getMessage());
             }
-        }catch(Exception $e) {           
-            return show(0,$e->getMessage());
         }
-        return show(0,'没有数据提交');
+        return show(0, '没有数据提交');
+    }
+
+    public function listorder() {
+        
+        $jumpUrl = $_SERVER['HTTP_REFERER'];
+    
+        $errors = array();
+        if($_POST['listorder']){
+            $data = $_POST['listorder'];
+            try{
+                foreach ($data as $menuId=>$v){
+                //遍历得到id和listorder值，传递到model中处理
+                    $id = D('Menu')->updateListorderById($menuId,$v);
+                    if($id === FALSE){
+                        $errors[] = $menuId;
+                    }
+                }
+            } catch (Exception $e) {
+                return show(0,'排序失败'.$e->getMessage(),array('jump_url'=>$jumpUrl));                      
+            }
+            if($errors) {
+                return show(0,'排序失败-失败ID为'.implode(',', $errors),array('jump_url'=>$jumpUrl));
+            }                         
+            return show(1,'排序成功',array('jump_url'=>$jumpUrl));
+        }    
+        return show(0,'数据提交失败', array('jump_url'=>$jumpUrl));
     }
 }
